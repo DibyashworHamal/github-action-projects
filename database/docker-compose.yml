@@ -21,8 +21,8 @@ services:
     environment:
       PMA_HOST: ${DB_HOST}
       PMA_PORT: ${DB_PORT}
-    expose:
-      - "80"
+    ports:
+      - "${PMA_HOST_PORT}:{PMA_CONTAINER_PORT}"
     networks:
       - shared-network
 
@@ -55,8 +55,8 @@ services:
     env_file:
       - .env
 
-    expose:
-      - "${MONGO_EXPRESS_PORT}"
+    ports:
+      - "${MONGO_EXPRESS_HOST_PORT}:${MONGO_EXPRESS_PORT}"
 
     networks:
       - shared-network
