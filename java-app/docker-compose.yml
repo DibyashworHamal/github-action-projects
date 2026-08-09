@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: ebs-java-app
     restart: on-failure
-    expose: 
+    expose: # This exposes the container's port to other containers on the same Docker network, but not to the host machine. This is useful for inter-container communication.
       - "${CONTAINER_PORT}"
     
     # Injects ALL variables from .env into the container for Spring Boot to pick up
