@@ -1,12 +1,10 @@
 services:
   event-booking-system:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/ebs-java-app:1.0.0
     container_name: ebs-java-app
     restart: on-failure
-    expose: # This exposes the container's port to other containers on the same Docker network, but not to the host machine. This is useful for inter-container communication.
-      - "${CONTAINER_PORT}"
+    ports:
+      - "${HOST_PORT}:${CONTAINER_PORT}"
     
     # Injects ALL variables from .env into the container for Spring Boot to pick up
     env_file:
