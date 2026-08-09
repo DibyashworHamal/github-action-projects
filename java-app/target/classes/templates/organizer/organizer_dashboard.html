@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common_head :: head('Organizer Dashboard')}"></head>
+
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+
+        <main class="main-content flex-grow-1 p-4" role="main">
+            <h2 class="mb-3">Welcome, <span th:text="${organizerName}">Organizer</span>!</h2>
+            <hr>
+
+            <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+            <div th:switch="${approvalStatus}">
+                <div th:case="'APPROVED'" class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i> Account Status: Approved – You can now manage your events.
+                </div>
+                <div th:case="'PENDING'" class="alert alert-warning" role="alert">
+                    <i class="bi bi-hourglass-split me-2" aria-hidden="true"></i> Account Status: Pending Review – <a th:href="@{/organizer/status}">Check details</a>.
+                </div>
+                <div th:case="'REJECTED'" class="alert alert-danger" role="alert">
+                    <i class="bi bi-x-circle-fill me-2" aria-hidden="true"></i> Account Status: Rejected – <a th:href="@{/organizer/request}">Submit a new request</a>.
+                </div>
+                <div th:case="'NOT_REQUESTED'" class="alert alert-info" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2" aria-hidden="true"></i> Action Required – <a th:href="@{/organizer/request}">Start approval process</a>.
+                </div>
+            </div>
+
+            <hr>
+
+            <h3 class="mb-3">Quick Actions</h3>
+            <div class="dashboard-cards-container">
+                <!-- Always Visible -->
+                <div class="dashboard-card">
+                    <h3><i class="bi bi-info-circle-fill me-2" aria-hidden="true"></i>View My Status</h3>
+                    <p>Check the current status of your approval request.</p>
+                    <a th:href="@{/organizer/status}" class="stretched-link" aria-label="View My Status"></a>
+                </div>
+
+                <!-- Conditional cards -->
+                <th:block th:if="${approvalStatus == 'APPROVED'}">
+                    <div class="dashboard-card">
+                        <h3><i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Add New Event</h3>
+                        <p>Create and publish a new event.</p>
+                        <a th:href="@{/organizer/events/add}" class="stretched-link" aria-label="Add New Event"></a>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="bi bi-calendar-event me-2" aria-hidden="true"></i>View My Events</h3>
+                        <p>Manage your existing events.</p>
+                        <a th:href="@{/organizer/events/view}" class="stretched-link" aria-label="View My Events"></a>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="bi bi-people-fill me-2" aria-hidden="true"></i>View Bookings</h3>
+                        <p>Manage attendees of your events.</p>
+                        <a th:href="@{/organizer/bookings}" class="stretched-link" aria-label="View Bookings"></a>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="bi bi-chat-left-dots-fill me-2" aria-hidden="true"></i>View Feedback</h3>
+                        <p>Review comments from customers.</p>
+                        <a th:href="@{/organizer/feedback}" class="stretched-link" aria-label="View Feedback"></a>
+                    </div>
+                </th:block>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleBtn = document.getElementById("sidebarToggleBtn");
+            const sidebar = document.getElementById("organizerSidebar");
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener("click", function () {
+                    sidebar.classList.toggle("open");
+                    const expanded = toggleBtn.getAttribute("aria-expanded") === "true";
+                    toggleBtn.setAttribute("aria-expanded", !expanded);
+                });
+            }
+        });
+    </script>
+     <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

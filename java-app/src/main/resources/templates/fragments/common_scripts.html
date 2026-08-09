@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="scripts">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Script for Desktop Collapsible Sidebar
+            const desktopToggleButton = document.getElementById('sidebar-toggle');
+            const sidebar = document.querySelector('.sidebar');
+
+            if (desktopToggleButton && sidebar) {
+                desktopToggleButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                });
+            }
+
+            // Script for Mobile Drawer Sidebar
+            const mobileToggleButton = document.querySelector('.drawer-toggle-btn');
+            if (mobileToggleButton && sidebar) {
+                mobileToggleButton.addEventListener('click', function () {
+                    sidebar.classList.toggle('open');
+                });
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

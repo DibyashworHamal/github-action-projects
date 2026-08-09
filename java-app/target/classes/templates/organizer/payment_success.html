@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common_head :: head('Request Submitted')}"></head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container" style="text-align: center;">
+    <h2>🎉 Congratulations!</h2>
+    <p>Your request to become an organizer has been submitted and your payment is recorded.</p>
+    <p>An administrator will review your application shortly. You can check the status from your dashboard.</p>
+    <br>
+    <a th:href="@{/organizer/dashboard}" class="button-link">
+        <button style="width: auto; padding: 10px 30px;">Back to Dashboard</button>
+    </a>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+ <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

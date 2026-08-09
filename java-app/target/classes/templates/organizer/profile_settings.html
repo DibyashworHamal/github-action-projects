@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common_head :: head('Profile Settings')}"></th:block>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+    
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+        
+        <main class="main-content">
+            <h2>Profile and Settings</h2>
+            <hr>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="profile-container">
+                <!-- Left Column: Profile Picture -->
+                <div class="profile-picture-card">
+                    <label for="profilePictureInput" style="cursor: pointer;" title="Click to upload a new photo">
+                        <div class="profile-picture-circle">
+                            <img id="imagePreview" th:src="${profile?.profilePicture} ?: 'https://i.ibb.co/61D6tDB/user-profile-icon-free-vector.jpg'" alt="Profile Picture">
+                        </div>
+                    </label>
+                    <input type="file" id="profilePictureInput" style="display: none;" accept="image/*"/>
+                    <h4><span th:text="${user.fullName}"></span></h4>
+                    <p style="color: #6c757d;" th:text="${user.role}"></p>
+                    <p class="profile-card-bio" th:if="${profile?.bio != null and !#strings.isEmpty(profile.bio)}" th:text="${profile.bio}"></p>
+                </div>
+                <!-- Right Column: Details and Settings -->
+                <div class="profile-details-card">
+                    <div class="profile-tabs">
+                        <button class="tab-link active" onclick="openTab(event, 'accountDetails')">Account Details</button>
+                        <button class="tab-link" onclick="openTab(event, 'profileSettings')">Profile Settings</button>
+                        <button class="tab-link" onclick="openTab(event, 'securitySettings')">Security</button>
+                    </div>
+
+                    <!-- Tab 1: Account Details -->
+                    <div id="accountDetails" class="tab-content active">
+                        <h3>Personal Information</h3>
+                        <label>Full Name</label>
+                        <input type="text" th:value="${user.fullName}" disabled class="form-control">
+                        <label>Email Address</label>
+                        <input type="email" th:value="${user.email}" disabled class="form-control">
+                        <label>Phone Number</label>
+                        <input type="text" th:value="${user.phoneNumber}" disabled class="form-control">
+                    </div>
+
+                    <!-- Tab 2: Profile Settings -->
+                    <div id="profileSettings" class="tab-content">
+                        <h3>General Settings</h3>
+                        <form id="profileSettingsForm" th:action="@{/organizer/profile/save-settings}" th:object="${settingsForm}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="csrfToken"/>
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" th:field="*{bio}" rows="4" placeholder="Tell us about your organization..." maxlength="255" class="form-control"></textarea>
+                            <div id="char-count" class="char-counter"></div>
+                            <div style="margin-top: 20px;">
+                                <div class="settings-item">
+                                    <label>Receive Email Notifications</label>
+                                    <label class="switch">
+                                        <input type="checkbox" th:field="*{notificationEmail}">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <label>Dark Mode Theme</label>
+                                    <label class="switch">
+                                        <input type="checkbox" name="theme" value="DARK" th:checked="*{theme == 'DARK'}">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-item">
+                                    <label>Language</label>
+                                    <span class="text-muted">English (US)</span>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 30px;">Save Changes</button>
+                        </form>
+                    </div>
+
+                    <!-- Tab 3: Security Settings -->
+                    <div id="securitySettings" class="tab-content">
+                        <h3>Change Password</h3>
+                        <p class="text-muted">For your security, you will be logged out after changing your password.</p>
+                        <form id="changePasswordForm" th:action="@{/organizer/profile/change-password}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="mb-3">
+                                <label for="oldPassword" class="form-label">Old Password</label>
+                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6" maxlength="8">
+                                <small class="form-text text-muted">Must be between 6 and 8 characters.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Update Password</button>
+                        </form>
+                    </div>
+                </div> 
+                
+            </div>
+        </main>
+    </div>
+    
+    <div id="cropperModal" style="display: none;">
+      <div class="modal-content-cropper">
+        <h2>Crop Your Image</h2>
+        <p>Adjust the selection to crop your new profile picture.</p>
+        <div><img id="imageToCrop" src=""></div>
+        <button id="cropAndUploadBtn" style="margin-top: 15px;">Crop & Save Picture</button>
+      </div>
+    </div>
+    
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <script>
+        // Tab Switching Logic
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // Character Counter Logic
+        const bioTextarea = document.getElementById('bio');
+        const charCountDiv = document.getElementById('char-count');
+        function updateCharCount() {
+            if(bioTextarea && charCountDiv) {
+                const currentLength = bioTextarea.value.length;
+                const maxLength = bioTextarea.maxLength;
+                charCountDiv.textContent = currentLength + " / " + maxLength;
+            }
+        }
+        if(bioTextarea) {
+            bioTextarea.addEventListener('input', updateCharCount);
+            updateCharCount();
+        }
+
+        // Cropper.js and Picture Upload Logic 
+        const fileInput = document.getElementById('profilePictureInput');
+        const modal = document.getElementById('cropperModal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const cropAndUploadBtn = document.getElementById('cropAndUploadBtn');
+        let cropper;
+
+        fileInput.addEventListener('change', (e) => {
+            modal.style.display = 'flex'; // Use flex to center the modal content
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imageToCrop.src = event.target.result;
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(imageToCrop, { aspectRatio: 1 / 1, viewMode: 1 });
+                };
+                reader.readAsDataURL(files[0]);
+            }
+        });
+
+        cropAndUploadBtn.addEventListener('click', () => {
+            if (!cropper) return;
+            cropper.getCroppedCanvas({ width: 256, height: 256 }).toBlob((blob) => {
+                // Create the dynamic form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/organizer/profile/picture/upload';
+                form.enctype = 'multipart/form-data';
+                form.style.display = 'none';
+
+                // Create the file input for the blob
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(new File([blob], "profile.jpg", { type: "image/jpeg" }));
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'file';
+                hiddenInput.name = 'photo';
+                hiddenInput.files = dataTransfer.files;
+                form.appendChild(hiddenInput);
+                
+                // Get the CSRF token from the main form's hidden input
+                const csrfInput = document.getElementById('csrfToken');
+                if (csrfInput) {
+                    const csrfTokenInput = document.createElement('input');
+                    csrfTokenInput.type = 'hidden';
+                    csrfTokenInput.name = csrfInput.name; // e.g., '_csrf'
+                    csrfTokenInput.value = csrfInput.value; // the actual token value
+                    form.appendChild(csrfTokenInput);
+                }
+                
+                // Submit the form
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+
+        // Add a listener to close the modal if the user clicks outside of the content
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+                if(cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

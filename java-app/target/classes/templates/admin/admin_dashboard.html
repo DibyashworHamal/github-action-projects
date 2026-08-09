@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+ <th:block th:replace="~{fragments/common_head :: head('Admin Dashboard')}"></th:block>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/admin_sidebar :: admin_sidebar}"></div>
+
+        <main class="main-content">
+            <h2>Admin Dashboard</h2>
+            <p>Welcome back, Admin! Manage your platform from here.</p>
+            <hr>
+
+            <div class="dashboard-cards-container">
+                <div class="dashboard-card">
+                    <h3>Manage Requests</h3>
+                    <p>View, approve, or reject new applications from organizers.</p>
+                    <a th:href="@{/admin/requests}" class="stretched-link"></a>
+                </div>
+                <div class="dashboard-card">
+                    <h3>View All Users</h3>
+                    <p>Browse and manage the list of all registered users.</p>
+                    <a th:href="@{/admin/users}" class="stretched-link"></a>
+                </div>
+                
+                  <div class="dashboard-card" th:if="${security.isSuperAdmin()}">
+                    <h3>Add New Admin</h3>
+                    <p>Create a new administrator account with full privileges.</p>
+                    <a th:href="@{/admin/add-admin}" class="stretched-link"></a>
+                  </div>
+                  
+                <div class="dashboard-card">
+                    <h3>View All Events</h3>
+                    <p>Monitor all events created by organizers on the platform.</p>
+                    <a th:href="@{/admin/events}" class="stretched-link"></a>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Platform Analytics</h3>
+                    <p>View reports on bookings, revenue, and user growth (Future).</p>
+                    <a href="#" class="stretched-link" onclick="return false;"></a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

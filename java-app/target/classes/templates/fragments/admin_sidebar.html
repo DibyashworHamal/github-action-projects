@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="sidebar" th:fragment="admin_sidebar">
+    <h4>
+        <button id="sidebar-toggle" class="sidebar-internal-toggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <span>Admin Menu</span>
+    </h4>
+    <ul>
+        <li><a th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+        <li><a th:href="@{/admin/requests}"><i class="bi bi-journal-check"></i><span>Organizer Requests</span></a></li>
+        <li><a th:href="@{/admin/users}"><i class="bi bi-people-fill"></i><span>View All Users</span></a></li>
+        
+        <li th:if="${security.isSuperAdmin()}">
+        <a th:href="@{/admin/add-admin}"><i class="bi bi-person-plus-fill"></i><span>Add New Admin</span></a>
+    </li>
+    
+        <li><a th:href="@{/admin/events}"><i class="bi bi-calendar-event"></i><span>View All Events</span></a></li>
+        <li><a th:href="@{/admin/notifications}"><i class="bi bi-bell-fill"></i><span>Notifications</span></a></li>
+        <li><a th:href="@{/admin/profile}"><i class="bi bi-person-circle"></i><span>Profile</span></a></li>
+
+        <li class="logout-item">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </button>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            </form>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

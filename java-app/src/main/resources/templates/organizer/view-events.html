@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common_head :: head('My Events')}"></th:block>
+    <style>
+        .event-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .event-card {
+            background-color: #fff; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 2px solid transparent; /* Base border */
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.12);
+        }
+        /* Style for featured events */
+        .event-card.featured {
+            border-color: #3498db;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.2);
+        }
+        .event-card-img-container {
+            position: relative;
+            overflow: hidden; /* Important for the badge */
+        }
+        .featured-badge {
+            position: absolute; top: 15px; right: -40px;
+            background-color: #3498db; color: white; padding: 5px 40px;
+            transform: rotate(45deg); font-size: 0.8rem;
+            font-weight: 600; text-align: center;
+        }
+        .event-card-img-top {
+            width: 100%; height: 180px;
+            object-fit: cover; background-color: #f0f0f0;
+        }
+        .event-card-body {
+            padding: 20px; flex-grow: 1; display: flex; flex-direction: column;
+        }
+        .event-card-title {
+            font-size: 1.25rem; font-weight: 600; margin-bottom: 15px;
+        }
+        .event-card-details {
+            list-style: none; padding: 0; color: #555; font-size: 0.9rem;
+        }
+        .event-card-details li {
+            display: flex; align-items: flex-start; margin-bottom: 8px;
+        }
+        .event-card-details .bi {
+            margin-right: 10px; color: #3498db; font-size: 1.1rem;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .event-card-description {
+            font-size: 0.9rem; color: #6c757d;
+            margin-top: 15px; border-top: 1px dashed #eee;
+            padding-top: 15px;
+        }
+        .event-card-footer {
+            padding: 15px 20px; background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef; margin-top: auto;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+        <main class="main-content">
+            <h2 class="mb-4">My Events</h2>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${#lists.isEmpty(events)}" class="alert alert-info text-center">
+                You haven't created any events yet. <a th:href="@{/organizer/events/add}">Create your first event now!</a>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(events)}" class="event-card-grid">
+                <!-- Use th:classappend to add 'featured' class conditionally -->
+                <div class="event-card" th:each="event : ${events}" th:classappend="${event.isFeatured} ? 'featured'">
+                    <div class="event-card-img-container">
+                        <img th:src="${event.coverImagePath != null ? event.coverImagePath : '/images/default-event.png'}" 
+                             class="event-card-img-top" alt="Event Image">
+                        <div th:if="${event.isFeatured}" class="featured-badge">FEATURED</div>
+                    </div>
+                    
+                    <div class="event-card-body">
+                        <h5 class="event-card-title" th:text="${event.title}">Event Title</h5>
+                        
+                        <ul class="event-card-details">
+                            <li><i class="bi bi-calendar-plus"></i><span><strong>Starts:</strong> <span th:text="${#temporals.format(event.startDateTime, 'MMM dd, h:mm a')}"></span></span></li>
+                            <li><i class="bi bi-calendar-x"></i><span><strong>Ends:</strong> <span th:text="${#temporals.format(event.endDateTime, 'MMM dd, h:mm a')}"></span></span></li>
+                            <li><i class="bi bi-geo-alt-fill"></i><span th:text="${event.location}"></span></li>
+                            <li><i class="bi bi-tag-fill"></i><span th:text="${event.categoryName != null ? event.categoryName : event.customCategory}"></span></li>
+                            <li><i class="bi bi-ticket-detailed"></i><span><strong>Tickets:</strong> <span th:text="${event.totalTickets}"></span></span></li>
+                        </ul>
+                        <p class="event-card-description" th:text="${#strings.abbreviate(event.description, 120)}"></p>
+                    </div>
+                    
+                    <div class="event-card-footer">
+                        <strong th:text="${event.price == 0 ? 'Free' : 'Rs. ' + #numbers.formatDecimal(event.price, 1, 'COMMA', 2, 'POINT')}">Price</strong>
+                        <a th:href="@{/organizer/events/edit/{id}(id=${event.eventId})}" class="btn btn-sm btn-outline-primary">Manage</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

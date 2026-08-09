@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common_head :: head('All Events')}"></th:block>
+    <style>
+        .table-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/admin_sidebar :: admin_sidebar}"></div>
+        <main class="main-content">
+            <h2>All Created Events</h2>
+            <p>A complete list of all events created by organizers.</p>
+            <hr>
+            <div class="table-container">
+                <table th:if="${!events.isEmpty()}">
+                    <thead>
+                        <tr>
+                            <th>Event ID</th> <th>Title</th> <th>Organizer</th>
+                            <th>Location</th> <th>Date & Time</th> <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="event : ${events}">
+                            <td th:text="${event.eventId}"></td>
+                            <td th:text="${event.title}"></td>
+                            <td th:text="${event.organizerName}"></td>
+                            <td th:text="${event.location}"></td>
+                            <td th:text="${#temporals.format(event.startDateTime, 'MMM dd, yyyy HH:mm')}"></td>
+                            <td th:text="${'Rs. ' + event.price}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div th:if="${events.isEmpty()}">
+                    <p>No events have been created yet.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+     <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

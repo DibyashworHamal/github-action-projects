@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Verify Password Reset</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="container">
+        <h2>Final Step: Verify Your Identity</h2>
+        <p>An OTP has been sent to <strong th:text="${email}">your.email@example.com</strong> to confirm your password change.</p>
+        <div th:if="${errorMessage}" class="error-message" style="text-align: center;" th:text="${errorMessage}"></div>
+        
+        <form th:action="@{/verify-otp-reset}" th:object="${passwordResetRequest}" method="post">
+            <input type="hidden" name="email" th:value="${email}" />
+            <!-- This ensures the password data is passed along -->
+            <input type="hidden" th:field="*{newPassword}" />
+            <input type="hidden" th:field="*{confirmPassword}" />
+            
+            <input type="text" name="otp" placeholder="Enter 6-Digit OTP" required autofocus maxlength="6" style="text-align: center;"/>
+            <button type="submit">Reset Password</button>
+        </form>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

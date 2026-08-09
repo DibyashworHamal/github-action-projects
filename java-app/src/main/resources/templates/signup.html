@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Organizer Signup</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="container">
+        <h2>Organizer Signup</h2>
+        <div th:if="${signupError}" th:text="${signupError}" class="error" style="text-align:center; margin-bottom: 15px;"></div>
+        
+        <!-- The oninput attribute calls the JavaScript function on every keystroke -->
+        <form th:action="@{/signup}" method="post" th:object="${user}" oninput="checkPasswordMatch()">
+            <input type="text" th:field="*{firstName}" placeholder="First Name" required>
+            <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="error-message"></div>
+
+            <input type="text" th:field="*{lastName}" placeholder="Last Name" required>
+            <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="error-message"></div>
+
+            <input type="email" th:field="*{email}" placeholder="Email" required>
+            <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-message"></div>
+
+            <input type="text" th:field="*{phoneNumber}" placeholder="Phone Number" required>
+            <div th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}" class="error-message"></div>
+
+            <input type="password" th:field="*{password}" id="password" placeholder="Password" required>
+            <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-message"></div>
+
+            <input type="password" th:field="*{confirmPassword}" id="confirmPassword" placeholder="Confirm Password" required>
+            <!-- This div is where the real-time error will appear -->
+            <div id="confirmPasswordError" class="error-message"></div>
+            <div th:if="${passwordError}" th:text="${passwordError}" class="error-message"></div>
+
+            <input type="hidden" name="role" value="ORGANIZER"/>
+            <button type="submit">Signup</button>
+        </form>
+        <a th:href="@{/login}" style="display: block; text-align: center; margin-top: 20px;">Already have an account? Login here.</a>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- JavaScript for real-time password match validation -->
+    <script>
+        function checkPasswordMatch() {
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const errorDiv = document.getElementById("confirmPasswordError");
+
+            if (password !== confirmPassword && confirmPassword.length > 0) {
+                errorDiv.textContent = "Passwords do not match.";
+            } else {
+                errorDiv.textContent = "";
+            }
+        }
+    </script>
+</body>
+</html>

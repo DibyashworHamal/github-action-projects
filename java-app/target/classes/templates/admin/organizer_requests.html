@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common_head :: head('Organizer Requests')}"></th:block>
+    <style>
+        .table-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+        .no-requests { color: #888; text-align: center; padding: 40px; }
+        .action-button { 
+            padding: 8px 15px; background-color: #3498db; color: white;
+            text-decoration: none; border-radius: 4px; font-size: 14px;
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        .action-button:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/admin_sidebar :: admin_sidebar}"></div>
+        <main class="main-content">
+            <h2>Pending Organizer Requests</h2>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <hr>
+            <div class="table-container">
+                <div th:if="${requests.isEmpty()}">
+                    <p class="no-requests">There are no pending requests to review at this time.</p>
+                </div>
+                <table th:if="${!requests.isEmpty()}">
+                    <thead>
+                        <tr>
+                            <th>Applicant Name</th> <th>Applicant Email</th> <th>Business Name</th>
+                            <th>Requested On</th> <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="request : ${requests}">
+                            <td th:text="${request.userFullName}"></td>
+                            <td th:text="${request.userEmail}"></td>
+                            <td th:text="${request.businessName}"></td>
+                            <td th:text="${#temporals.format(request.requestedAt, 'MMM dd, yyyy HH:mm')}"></td>
+                            <td>
+                                <a th:href="@{/admin/requests/detail/{id}(id=${request.requestId})}" class="action-button">View Details</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

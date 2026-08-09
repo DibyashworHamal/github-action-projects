@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <th:block th:replace="~{fragments/common_head :: head('My Event Bookings')}"></th:block>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+
+        <main class="main-content">
+            <h2 class="mb-4">Bookings for My Events</h2>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(bookings)}" class="alert alert-info text-center">
+                        You have no bookings for any of your events yet.
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(bookings)}" class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Event Name</th>
+                                    <th>Customer Name</th>
+                                    <th>Booking Date</th>
+                                    <th>Payment Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="booking : ${bookings}">
+                                    <td th:text="${booking.bookingId}">1</td>
+                                    <td th:text="${booking.eventTitle}">Cool Music Fest</td>
+                                    <td th:text="${booking.customerName}">John Doe</td>
+                                    <td th:text="${#temporals.format(booking.bookingDate, 'MMM dd, yyyy, h:mm a')}"></td>
+                                    <td>
+                                        <span th:text="${booking.paymentStatus}"
+                                              th:classappend="${booking.paymentStatus == 'PAID'} ? 'badge bg-success' : 'badge bg-warning text-dark'">
+                                            PAID
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

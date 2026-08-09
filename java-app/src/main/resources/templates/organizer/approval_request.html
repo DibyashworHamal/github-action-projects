@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common_head :: head('Organizer Application')}"></head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+        <main class="main-content">
+            <div class="container">
+                <div th:if="${isApproved}">
+                    <h2>Request Not Needed</h2>
+                    <p>Congratulations! You are already an approved organizer.</p>
+                    <a th:href="@{/organizer/dashboard}">Return to Dashboard</a>
+                </div>
+                <div th:if="${isPending}">
+                    <h2>Request Pending Review</h2>
+                    <p>Your request is under review. You can check the status from your dashboard.</p>
+                    <a th:href="@{/organizer/status}">Check Your Request Status</a>
+                </div>
+                <div th:if="${!isApproved and !isPending}">
+                    <h2>Organizer Application Form</h2>
+                    <form th:action="@{/organizer/request}" th:object="${request}" method="post" enctype="multipart/form-data">
+                        <label for="userEmail">Your Email:</label>
+                        <input type="email" id="userEmail" th:value="${userEmail}" disabled/>
+                        <label for="businessName">Business Name:</label>
+                        <input type="text" id="businessName" th:field="*{businessName}" required/>
+                        <div th:if="${#fields.hasErrors('businessName')}" th:errors="*{businessName}" class="error-message"></div>
+                        <label for="taxId">Tax ID / PAN:</label>
+                        <input type="text" id="taxId" th:field="*{taxId}" required/>
+                        <div th:if="${#fields.hasErrors('taxId')}" th:errors="*{taxId}" class="error-message"></div>
+                        <label for="contactPhone">Contact Phone:</label>
+                        <input type="text" id="contactPhone" th:field="*{contactPhone}" required/>
+                        <div th:if="${#fields.hasErrors('contactPhone')}" th:errors="*{contactPhone}" class="error-message"></div>
+                        <label for="document">Upload Verification Document (PDF only):</label>
+                        <input type="file" id="document" name="document" accept="application/pdf" required/>
+                        <div th:if="${#fields.hasErrors('document')}" th:errors="*{document}" class="error-message"></div>
+                        <button type="submit">Submit and Proceed to Payment</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+     <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

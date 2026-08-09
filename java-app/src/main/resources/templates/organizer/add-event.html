@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common_head :: head('Add New Event')}"></head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+
+        <main class="main-content">
+            <div class="container" style="max-width: 800px;">
+                <h2 class="mb-4">Add New Event</h2>
+
+                <!-- Success/Error Messages -->
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+                <form th:action="@{/organizer/events/add}" th:object="${eventForm}" method="post" enctype="multipart/form-data">
+                    
+                    <!-- Event Name -->
+                    <div class="mb-3">
+                        <label for="eventName" class="form-label">Event Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="eventName" th:field="*{eventName}" placeholder="Enter event name" required>
+                        <div class="text-danger" th:if="${#fields.hasErrors('eventName')}" th:errors="*{eventName}"></div>
+                    </div>
+
+                    <!-- Event Description -->
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Event Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="eventDescription" th:field="*{eventDescription}" rows="5" placeholder="Provide a detailed description of the event" required></textarea>
+                        <div class="text-danger" th:if="${#fields.hasErrors('eventDescription')}" th:errors="*{eventDescription}"></div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <!-- Start Date & Time -->
+                        <div class="col-md-6">
+                            <label for="startDateTime" class="form-label">Start Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="startDateTime" th:field="*{startDateTime}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('startDateTime')}" th:errors="*{startDateTime}"></div>
+                        </div>
+                        <!-- End Date & Time -->
+                        <div class="col-md-6">
+                            <label for="endDateTime" class="form-label">End Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="endDateTime" th:field="*{endDateTime}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('endDateTime')}" th:errors="*{endDateTime}"></div>
+                        </div>
+                         <div class="text-danger" th:if="${#fields.hasErrors('endDateAfterStartDate')}" th:errors="*{endDateAfterStartDate}"></div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <!-- Location -->
+                        <div class="col-md-6">
+                            <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="location" th:field="*{location}" placeholder="Venue or address" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="categoryId" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="categoryId" th:field="*{categoryId}" required>
+                                <option value="">Select category</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.name}"></option>
+                                <!-- Add the "Other" option with a special value for the script to detect -->
+                                <option value="-1">Other</option>
+                            </select>
+                            <div class="text-danger" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+            
+                            <div id="otherCategoryWrapper" class="mt-2" style="display: none;">
+                                <label for="otherCategoryName" class="form-label">Specify Other Category</label>
+                                <input type="text" class="form-control" id="otherCategoryName" th:field="*{otherCategoryName}" placeholder="e.g., Charity Run">
+                                <!-- Optional: Add validation message display for this new field -->
+                                <div class="text-danger" th:if="${#fields.hasErrors('otherCategoryName')}" th:errors="*{otherCategoryName}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                         <!-- Total Tickets Available -->
+                        <div class="col-md-6">
+                            <label for="totalTickets" class="form-label">Total Tickets Available <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="totalTickets" th:field="*{totalTickets}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('totalTickets')}" th:errors="*{totalTickets}"></div>
+                        </div>
+                         <!-- Ticket Price -->
+                        <div class="col-md-6">
+                            <label for="ticketPrice" class="form-label">Ticket Price (Rs) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="ticketPrice" th:field="*{ticketPrice}" step="0.01" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('ticketPrice')}" th:errors="*{ticketPrice}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Event Image -->
+                    <div class="mb-3">
+                        <label for="eventImage" class="form-label">Event Image</label>
+                        <input class="form-control" type="file" id="eventImage" name="eventImage" accept="image/*">
+                        <div class="text-danger" th:if="${#fields.hasErrors('eventImage')}" th:errors="*{eventImage}"></div>
+                    </div>
+
+                    <!-- Optional Fields -->
+                    <hr class="my-4">
+                    <h5 class="mb-3">Optional Details</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="organizerName" class="form-label">Organizer Name</label>
+                            <input type="text" class="form-control" id="organizerName" th:field="*{organizerName}" placeholder="Name of the organizer">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="organizerContact" class="form-label">Organizer Contact</label>
+                            <input type="text" class="form-control" id="organizerContact" th:field="*{organizerContact}" placeholder="Email or phone number">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventWebsite" class="form-label">Event Website</label>
+                        <input type="url" class="form-control" id="eventWebsite" th:field="*{eventWebsite}" placeholder="https://example.com">
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="featured" th:field="*{featured}">
+                        <label class="form-check-label" for="featured">Feature this event on homepage</label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="registrationRequired" th:field="*{registrationRequired}" checked>
+                        <label class="form-check-label" for="registrationRequired">Require registration</label>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary" style="width: auto; padding: 10px 30px;">Create Event</button>
+                        <button type="reset" class="btn btn-outline-secondary" style="width: auto; padding: 10px 30px;">Reset Form</button>
+                    </div>
+
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.getElementById('categoryId');
+            const otherCategoryWrapper = document.getElementById('otherCategoryWrapper');
+            const otherCategoryInput = document.getElementById('otherCategoryName');
+            function toggleOtherCategory() {
+                if (categorySelect.value === '-1') {
+                    otherCategoryWrapper.style.display = 'block';
+                    otherCategoryInput.setAttribute('required', 'required');
+                } else {
+                    otherCategoryWrapper.style.display = 'none';
+                    otherCategoryInput.removeAttribute('required');
+                    otherCategoryInput.value = '';
+                }
+            }
+            if (categorySelect && otherCategoryWrapper) {
+                categorySelect.addEventListener('change', toggleOtherCategory);
+                toggleOtherCategory();
+            }
+        });
+    </script>
+</body>
+</html>

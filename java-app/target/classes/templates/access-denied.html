@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Access Denied</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .access-denied-box {
+            text-align: center;
+            border: 1px solid #f5c6cb;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 40px;
+            border-radius: 8px;
+        }
+        .access-denied-box h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container">
+    <div class="access-denied-box">
+        <h2 th:text="${errorMessage}">Access Denied</h2>
+        <p style="font-size: 1.1em;" th:text="${errorSubMessage}">You do not have permission to view this page.</p>
+    </div>
+    <a th:href="@{/organizer/dashboard}" style="margin-top: 25px;">Go to My Dashboard</a>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

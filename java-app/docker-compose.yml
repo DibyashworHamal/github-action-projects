@@ -1,0 +1,30 @@
+services:
+  event-booking-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ebs-java-app
+    restart: on-failure
+    expose: 
+      - "${CONTAINER_PORT}"
+    
+    # Injects ALL variables from .env into the container for Spring Boot to pick up
+    env_file:
+      - .env
+      
+    # Connects to your shared MySQL network
+    networks:
+      - shared-app-network
+      
+    # Mounts a volume so uploaded documents aren't lost when the container restarts
+    volumes:
+      - ebs_uploads:/app/uploads/organizer_docs
+
+networks:
+  shared-app-network:
+    name: devops-shared-network
+    external: true # This tells Docker Compose to use an existing network instead of creating a new one. It allows the Java app to communicate with the MySQL database and phpMyAdmin services defined in the database/docker-compose.yml file.
+
+# Creates a persistent storage space on your host machine for uploaded files
+volumes:
+  ebs_uploads:

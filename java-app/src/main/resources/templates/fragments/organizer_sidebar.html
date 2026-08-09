@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav class="sidebar" th:fragment="organizer_sidebar" id="organizerSidebar">
+    <h4>
+        <button id="sidebar-toggle" class="sidebar-internal-toggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <span>Organizer Menu</span>
+    </h4>
+    <ul>
+        <li><a th:href="@{/organizer/dashboard}"><i class="bi bi-house-door"></i><span>Dashboard</span></a></li>
+        <li><a th:href="@{/organizer/status}"><i class="bi bi-info-circle"></i><span>View My Status</span></a></li>
+        <li th:if="${approvalStatus == 'REJECTED' or approvalStatus == 'NOT_REQUESTED'}">
+            <a th:href="@{/organizer/request}"><i class="bi bi-journal-plus"></i><span>Make/Retry Request</span></a>
+        </li>
+        <th:block th:if="${approvalStatus == 'APPROVED'}">
+            <li><a th:href="@{/organizer/events/add}"><i class="bi bi-calendar-plus"></i><span>Add New Event</span></a></li>
+            <li><a th:href="@{/organizer/events/view}"><i class="bi bi-calendar-check"></i><span>View My Events</span></a></li>
+            <li><a th:href="@{/organizer/bookings}"><i class="bi bi-people-fill"></i><span>View Bookings</span></a></li>
+            <li><a th:href="@{/organizer/feedback}"><i class="bi bi-chat-left-text"></i><span>View Feedback</span></a></li>
+            <li><a th:href="@{/organizer/notifications}"><i class="bi bi-bell-fill"></i><span>Notifications</span></a></li>
+            <li><a th:href="@{/organizer/profile}"><i class="bi bi-person-circle"></i><span>Profile</span></a></li>
+        </th:block>
+        <li class="logout-item">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </button>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            </form>
+        </li>
+    </ul>
+</nav>
+</body>
+</html>

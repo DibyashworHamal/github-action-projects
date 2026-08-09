@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+     <th:block th:replace="~{fragments/common_head :: head('Notifications')}"></th:block>
+    <style>
+        .notification-list { list-style: none; padding: 0; }
+        .notification-item { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .notification-item.UNREAD { border-left: 5px solid #3498db; }
+        .notification-content h5 { margin: 0 0 5px 0; }
+        .notification-content p { margin: 0; color: #555; }
+        .notification-content small { color: #999; }
+        .clear-btn { background: #e74c3c; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; border: none; cursor: pointer; }
+        .clear-all-form { margin-bottom: 20px; text-align: right; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/admin_sidebar :: admin_sidebar}"></div>
+        <main class="main-content">
+            <h2>Notifications</h2>
+            <hr>
+            
+            <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
+            <div th:if="${!notifications.isEmpty()}" class="clear-all-form">
+                <form th:action="@{/admin/notifications/delete/all}" method="post" onsubmit="return confirm('Are you sure you want to clear all notifications?');">
+                    <button type="submit" class="clear-btn">Clear All</button>
+                </form>
+            </div>
+            
+            <ul class="notification-list">
+                <li th:if="${notifications.isEmpty()}">You have no new notifications.</li>
+                <li th:each="n : ${notifications}" class="notification-item" th:classappend="${n.status}">
+                    <div class="notification-content">
+                        <h5 th:text="${n.title}"></h5>
+                        <p th:text="${n.message}"></p>
+                        <small th:text="${#temporals.format(n.sentAt, 'MMM dd, yyyy HH:mm')}"></small>
+                    </div>
+                    <form th:action="@{/admin/notifications/delete/{id}(id=${n.notificationId})}" method="post">
+                        <button type="submit" class="clear-btn" title="Clear this notification">×</button>
+                    </form>
+                </li>
+            </ul>
+        </main>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+     <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>

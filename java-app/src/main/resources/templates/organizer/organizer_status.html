@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common_head :: head('Request Status')}"></head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    <div class="dashboard-container">
+        <div th:replace="~{fragments/organizer_sidebar :: organizer_sidebar}"></div>
+
+        <main class="main-content">
+            <div class="container">
+                <h2>Your Request Status</h2>
+                <div th:if="${hasRequest}">
+                    <ul class="status-list">
+                        <li><strong>Business Name:</strong> <span th:text="${requestStatus.businessName}"></span></li>
+                        <li><strong>Approval Status:</strong> <span th:text="${requestStatus.approvalStatus}"></span></li>
+                        <li><strong>Payment Status:</strong> <span th:text="${requestStatus.paymentStatus}"></span></li>
+                        <li><strong>Requested On:</strong> <span th:text="${#temporals.format(requestStatus.requestedAt, 'MMM dd, yyyy HH:mm')}"></span></li>
+                        <li th:if="${requestStatus.approvedAt != null}">
+                            <strong>Processed On:</strong> 
+                            <span th:text="${#temporals.format(requestStatus.approvedAt, 'MMM dd, yyyy HH:mm')}"></span>
+                        </li>
+                          <li th:if="${requestStatus.processedByAdminName != null}">
+                            <strong>Processed By:</strong>
+                            <span th:text="${requestStatus.processedByAdminName}"></span>
+                        </li>
+                    </ul>
+
+                    <div th:if="${#strings.equals(requestStatus.paymentStatus, 'PENDING')}" class="payment-prompt">
+                        <h4>Payment Required</h4>
+                        <p>Your request will not be reviewed by an administrator until payment is completed.</p>
+                        <a th:href="@{/payment/make(requestId=${requestStatus.requestId})}">
+                            <button style="width: auto; padding: 10px 25px; margin-top: 10px;">Make Payment Now</button>
+                        </a>
+                    </div>
+                    <div th:if="${#strings.equals(requestStatus.approvalStatus, 'REJECTED')}" style="margin-top: 20px;">
+                         <p style="color:#e74c3c; font-weight:bold;">Your request was rejected.</p>
+                         <p th:if="${requestStatus.adminComments != null and !#strings.isEmpty(requestStatus.adminComments)}">
+                             <strong>Admin Comments:</strong> <span th:text="${requestStatus.adminComments}"></span>
+                         </p>
+                    </div>
+
+                </div>
+                <div th:if="!${hasRequest}">
+                    <p class="error-message" style="text-align: center;">You have not made an approval request yet.</p>
+                    <a th:href="@{/organizer/request}">Click here to make a request</a>
+                </div>
+
+                <a th:href="@{/organizer/dashboard}" style="display: block; text-align: center; margin-top: 25px;">Back to Dashboard</a>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+     <div th:replace="~{fragments/common_scripts :: scripts}"></div>
+</body>
+</html>
