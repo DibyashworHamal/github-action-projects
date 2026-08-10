@@ -14,29 +14,42 @@ jobs:
     name: Deploy to VM
     runs-on: ubuntu-latest
     
-    # CRUCIAL: Only deploy if the CI pipeline actually succeeded (didn't fail tests/build)
+    # CRUCIAL: Only deploy if the CI pipeline actually succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          # This grabs the full .env content from GitHub Secrets
+          DOT_ENV_CONTENT: ${{ secrets.JAVA_ENV_FILE }}
         with:
-          host: ${{ secrets.VPS_HOST }}         # e.g., 192.168.1.100
-          username: ${{ secrets.VPS_USERNAME }} # e.g., ubuntu or root
-          key: ${{ secrets.VPS_SSH_KEY }}       # Your Private SSH Key (If you used a password instead, change this to: password: ${{ secrets.VPS_PASSWORD }})
+          host: ${{ secrets.VPS_HOST }}         
+          username: ${{ secrets.VPS_USERNAME }} 
+          key: ${{ secrets.VPS_SSH_KEY }}       
           
-          # These are the commands that will run directly on your VM
+          # We pass the env variable into the SSH session using 'envs'
+          envs: DOT_ENV_CONTENT
+          
           script: |
-            # 1. Navigate to your specific app folder on the server
-            # ⚠️ CHANGE THIS PATH to where your repo lives on your VM
-            cd /home/vagrant/java-app/github-action-projects/java-app
-            
-            # 2. Pull the latest repository code (in case you changed docker-compose.yml or .env)
+            cd /home/vagrant
+
+            # Check if the repository is already cloned. If not, clone it!
+            # (Replace 'YourUsername' with your actual GitHub username!)
+            if [ ! -d "github-action-projects" ]; then
+              git clone git@github.com:DibyashworHamal/github-action-projects.git
+            fi
+
+            cd github-action-projects/java-app
+
+            # Pull the latest repository code
             git pull origin main
             
-            # 3. Pull the latest Docker Image from Docker Hub 
-            # (Very important because your tag is always 1.0.0, we must force it to download the new one)
-            docker-compose pull
+            # Overwrite the .env file with the latest contents from GitHub Secrets
+            echo "$DOT_ENV_CONTENT" > .env
             
-            # 4. Recreate and restart the container with the new image
-            docker-compose up -d
+            # Pull the latest Docker Image from Docker Hub 
+            docker compose pull
+            
+            # Recreate and restart the container with the new image
+            docker compose up -d
