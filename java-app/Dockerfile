@@ -14,6 +14,5 @@ WORKDIR /app
 COPY --from=builder --chown=ebsuser:ebsgroup /app/target/*.jar ebs_app.jar
 USER ebsuser
 EXPOSE 8081
-HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 CMD sh -c "netstat -lnt | grep -q ':8081' || exit 1"'"
 ENTRYPOINT ["java","-jar"]
 CMD ["ebs_app.jar"]
