@@ -1,8 +1,6 @@
 # Beginner-Friendly Deployment Runbook
 **End-to-End DevOps Process Note for Multi-App Microservices Architecture**
 
----
-
 ## Architecture Overview
 
 This architecture deploys a production-ready, modular, multi-application environment on a single AWS EC2 instance. Applications are decoupled into independent directories within a single **Monorepo** (`github-action-projects`), communicating via a shared Docker network while routing external traffic through Nginx and Cloudflare.
@@ -19,28 +17,26 @@ This architecture deploys a production-ready, modular, multi-application environ
                                        │
                          [ Native Nginx Reverse Proxy ]
                                        │
-     ┌──────────────────┬──────────────┼──────────────┬──────────────────┐
-     │                  │              │              │                  │
- (Port 8082)        (Port 8084)    (Port 8083)    (Port 8085)        (Port 8090)
-     │                  │              │              │                  │
- ┌───▼────────────┐ ┌───▼────────┐ ┌───▼────────┐ ┌───▼────────────┐ ┌───▼────────┐
- │ ebs-java-app   │ │ weather-app│ │ wordpress  │ │ mern-frontend  │ │ phpmyadmin │
- └───┬────────────┘ └────────────┘ └───┬────────┘ └───┬────────────┘ └───┬────────┘
-     │ (MySQL)                         │ (MySQL)      │ (MongoDB)        │ (MySQL)
-     └─────────────────┐               │              │                  │
-                       ▼               ▼              │                  │
-              ┌─────────────────────────────┐         │                  │
-              │ mysql:8.0 (dip_db, wp_db)   │◄────────┼──────────────────┘
-              └─────────────────────────────┘         │
-                       ┌──────────────────────────────┘
+ ┌──────────────┬──────────────┬───────┴──────┬──────────────┬──────────────┬──────────────┐
+ │              │              │              │              │              │              │
+(8082)         (8084)         (8083)         (8085)         (5000)         (8090)         (8081)
+ │              │              │              │              │              │              │
+ ┌───▼────────┐ ┌───▼────────┐ ┌───▼────────┐ ┌───▼────────┐ ┌───▼────────┐ ┌───▼────────┐ ┌───▼────────┐
+ │ebs-java-app│ │weather-app │ │wordpress   │ │mern-front  │ │mern-backend│ │phpmyadmin  │ │mongo-express  │
+ └───┬────────┘ └────────────┘ └───┬────────┘ └───┬────────┘ └───┬────────┘ └───┬────────┘ └────────────┘
+     │ (MySQL)                     │ (MySQL)      │              │ (MongoDB)    │ (MySQL)
+     └─────────────────┐           │              │ (API Calls)  │              │
+                       ▼           ▼              └─────────────►│              │
+              ┌─────────────────────────────┐                    ▼              │
+              │ mysql:8.0 (dip_db, wp_db)   │◄──────────────────────────────────┘
+              └─────────────────────────────┘                    │
+                       ┌─────────────────────────────────────────┘
                        ▼
               ┌─────────────────────────────┐
               │ mongodb:8.0 (mern_db)       │
               └─────────────────────────────┘
               [ Shared Docker Network: devops-shared-network ]
 ```
-
----
 
 ## Phase 1: Prerequisites & Account Requirements
 
