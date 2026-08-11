@@ -1,0 +1,89 @@
+name: Node.js Weather App CI/CD Pipeline
+
+on:
+  workflow_dispatch: # Allows manual button click in GitHub Actions UI
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'node.js-app/**' # Triggers only when files in node.js-app folder change
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'node.js-app/**'
+
+jobs:
+  # CI JOB: Builds Node App & Pushes Image to Docker Hub
+  build:
+    name: Continuous Integration (CI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./node.js-app
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: ./node.js-app/weather-app
+        run: npm install
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker image build -t ${{ secrets.DOCKERHUB_USERNAME }}/weather-app:1.0.0 .
+
+      - name: Push Docker Image to Docker Hub
+        run: |
+          docker image push ${{ secrets.DOCKERHUB_USERNAME }}/weather-app:1.0.0
+
+  # CD JOB: Deploys Node App to AWS EC2
+  deploy:
+    name: Continuous Deployment (CD)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy Node.js App via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.NODE_ENV_FILE }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOT_ENV_CONTENT
+          script: |
+            # 1. Navigate to home directory
+            cd /home/ubuntu/
+
+            # 2. Pull latest code from GitHub
+            if [ ! -d "github-action-projects" ]; then
+              git clone https://github.com/DibyashworHamal/github-action-projects.git
+            else
+              git pull origin main
+            fi
+
+            # 3. Go to node.js-app directory
+            cd github-action-projects/node.js-app
+
+            # 4. Inject Node.js environment variables
+            echo "$DOT_ENV_CONTENT" > .env
+
+            # 5. Ensure external shared network exists
+            docker network create devops-shared-network 2>/dev/null || true
+
+            # 6. Pull image from Docker Hub and launch container
+            docker compose pull
+            docker compose up -d
