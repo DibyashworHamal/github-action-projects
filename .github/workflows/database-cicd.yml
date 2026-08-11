@@ -1,11 +1,11 @@
 name: Database Deployment Pipeline
 
 on:
+  workflow_dispatch: # <--- THIS ENABLES THE MANUAL BUTTON IN GITHUB UI!
   push:
     branches: [ "main" ]
     paths:
       - 'database/**' # Triggers only when database folder changes
-  workflow_dispatch:   # Allows manual trigger from GitHub UI if needed
 
 jobs:
   deploy-database:
