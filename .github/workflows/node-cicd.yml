@@ -29,6 +29,11 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Create .env File
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.NODE_ENV_FILE }}
+        run: echo "$DOT_ENV_CONTENT" > .env
+
       - name: Install Dependencies
         working-directory: ./node.js-app/weather-app
         run: npm install
