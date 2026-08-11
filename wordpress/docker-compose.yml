@@ -1,0 +1,21 @@
+services:
+  wordpress:
+    image: ${WP_IMAGE}
+    container_name: wordpress_app
+    ports:
+      - "${HOST_PORT}:${CONTAINER_PORT}"
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - wp-network
+
+volumes:
+  wordpress_data:
+
+networks:
+  wp-network:
+    name: devops-shared-network
+    external: true
