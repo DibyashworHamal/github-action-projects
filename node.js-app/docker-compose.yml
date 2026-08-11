@@ -1,8 +1,6 @@
 services:
   weather-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/weather-app:1.0.0
     container_name: node_weather_app
     ports:
       - "${HOST_PORT}:${CONTAINER_PORT}"
