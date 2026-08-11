@@ -70,18 +70,19 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DOT_ENV_CONTENT
           script: |
-            # 1. go to home directory
-            cd /home/ubuntu/
+            # 1. Ensure project root directory exists and navigate inside it
+            mkdir -p /home/ubuntu/github-action-projects
+            cd /home/ubuntu/github-action-projects
 
             # 2. Clone repo if missing, otherwise pull latest code
-            if [ ! -d "github-action-projects" ]; then
-              git clone https://github.com/DibyashworHamal/github-action-projects.git
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/DibyashworHamal/github-action-projects.git .
             else
               git pull origin main
             fi
 
             # 3. Navigate into java-app directory
-            cd github-action-projects/java-app
+            cd java-app
 
             # 4. Inject Java application environment variables
             echo "$DOT_ENV_CONTENT" > .env
