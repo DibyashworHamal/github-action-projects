@@ -1,0 +1,47 @@
+name: Database Deployment Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'database/**' # Triggers only when database folder changes
+  workflow_dispatch:   # Allows manual trigger from GitHub UI if needed
+
+jobs:
+  deploy-database:
+    name: Deploy Database Services to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Database via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.DATABASE_ENV_FILE }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOT_ENV_CONTENT
+          script: |
+            # 1. go to home directory
+            cd /home/ubuntu/
+
+            # 2. Clone repo if missing, otherwise pull latest code
+            if [ ! -d "github-action-projects" ]; then
+              git clone https://github.com/DibyashworHamal/github-action-projects.git
+            else
+              git pull origin main
+            fi
+
+            # 3. Navigate into database directory
+            cd github-action-projects/database
+
+            # 4. Inject database environment variables
+            echo "$DOT_ENV_CONTENT" > .env
+
+            # 5. Ensure external shared network exists
+            docker network create devops-shared-network 2>/dev/null || true
+
+            # 6. Pull images and launch containers
+            docker compose pull
+            docker compose up -d
