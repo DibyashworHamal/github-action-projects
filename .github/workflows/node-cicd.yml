@@ -70,18 +70,19 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DOT_ENV_CONTENT
           script: |
-            # 1. Navigate to home directory
-            cd /home/ubuntu/
+            # 1. Ensure project root directory exists and navigate inside it
+            mkdir -p /home/ubuntu/github-action-projects
+            cd /home/ubuntu/github-action-projects
 
             # 2. Pull latest code from GitHub
-            if [ ! -d "github-action-projects" ]; then
-              git clone https://github.com/DibyashworHamal/github-action-projects.git
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/DibyashworHamal/github-action-projects.git .
             else
               git pull origin main
             fi
 
             # 3. Go to node.js-app directory
-            cd github-action-projects/node.js-app
+            cd node.js-app
 
             # 4. Inject Node.js environment variables
             echo "$DOT_ENV_CONTENT" > .env
