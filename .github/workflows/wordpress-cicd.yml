@@ -1,0 +1,65 @@
+name: WordPress CI/CD Pipeline
+
+on:
+  workflow_dispatch: # Allows manual button click in GitHub Actions UI
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'wordpress/**' # Triggers only when files in wordpress folder change
+
+jobs:
+  # CI JOB: Validates WordPress Configuration
+  build:
+    name: Continuous Integration (CI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wordpress
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose config
+
+  # CD JOB: Deploys WordPress to AWS EC2
+  deploy:
+    name: Continuous Deployment (CD)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy WordPress via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.WORDPRESS_ENV_FILE }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOT_ENV_CONTENT
+          script: |
+            # 1. Navigate to home directory
+            cd /home/ubuntu/
+
+            # 2. Pull latest code from GitHub
+            if [ ! -d "github-action-projects" ]; then
+              git clone https://github.com/DibyashworHamal/github-action-projects.git
+            else
+              git pull origin main
+            fi
+
+            # 3. Go to wordpress directory
+            cd github-action-projects/wordpress
+
+            # 4. Inject WordPress environment variables
+            echo "$DOT_ENV_CONTENT" > .env
+
+            # 5. Ensure external shared network exists
+            docker network create devops-shared-network 2>/dev/null || true
+
+            # 6. Pull WordPress image and launch container
+            docker compose pull
+            docker compose up -d
