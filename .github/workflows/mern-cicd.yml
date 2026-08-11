@@ -1,0 +1,100 @@
+name: MERN Stack CI/CD Pipeline
+
+on:
+  workflow_dispatch: # Allows manual button click in GitHub Actions UI
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'mern-app/**' # Triggers only when files in mern-app folder change
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'mern-app/**'
+
+jobs:
+  # CI JOB: Builds Frontend & Backend Images and pushes them to Docker Hub
+  build:
+    name: Continuous Integration (CI)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 1. Inject secrets 
+      - name: Create .env File for Validation
+        working-directory: ./mern-app
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.MERN_ENV_FILE }}
+        run: echo "$DOT_ENV_CONTENT" > .env
+
+      # 2. Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      # 3. Build & Push Backend Docker Image
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./mern-app/backend # Adjust path if folder is named server/
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mern-backend:1.0.0
+
+      # 4. Build & Push Frontend Docker Image
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./mern-app/frontend # Adjust path if folder is named client/
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mern-frontend:1.0.0
+
+      - name: Validate Docker Compose Configuration
+        working-directory: ./mern-app
+        run: docker compose config
+
+  # ==========================================
+  # CD JOB: Deploys MERN Containers to AWS EC2
+  # ==========================================
+  deploy:
+    name: Continuous Deployment (CD)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy MERN Stack via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.MERN_ENV_FILE }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOT_ENV_CONTENT
+          script: |
+            # 1. Navigate to project root on EC2
+            mkdir -p /home/ubuntu/github-action-projects
+            cd /home/ubuntu/github-action-projects
+
+            # 2. Pull latest code from GitHub
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/DibyashworHamal/github-action-projects.git .
+            else
+              git pull origin main
+            fi
+
+            # 3. Go to mern-app directory
+            cd mern-app
+
+            # 4. Inject MERN environment variables
+            echo "$DOT_ENV_CONTENT" > .env
+
+            # 5. Ensure external shared network exists
+            docker network create devops-shared-network 2>/dev/null || true
+
+            # 6. Pull images from Docker Hub and launch containers
+            docker compose pull
+            docker compose up -d
