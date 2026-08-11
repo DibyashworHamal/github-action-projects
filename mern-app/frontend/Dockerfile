@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-ARG VITE_API_URL=http://api.local/api
+ARG VITE_API_URL=https://mern-api.dibyashworhamal.com.np/api
 ENV VITE_API_URL=$VITE_API_URL
 
 # Copy the rest of the source code
