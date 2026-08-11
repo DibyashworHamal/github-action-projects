@@ -1,0 +1,21 @@
+services:
+  weather-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_weather_app
+    ports:
+      - "${HOST_PORT}:${CONTAINER_PORT}"
+    restart: unless-stopped
+    env_file:
+      - .env
+    
+    # connect to shared network
+    # It can now communicate with 'mysql' if it ever needs to!
+    networks:
+      - node-shared-network
+
+networks:
+  node-shared-network:
+    name: devops-shared-network
+    external: true
