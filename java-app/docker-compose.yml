@@ -1,6 +1,6 @@
 services:
   event-booking-system:
-    image: ${DOCKERHUB_USERNAME}/ebs-java-app:1.0.0
+    image: ${IMAGE}
     container_name: ebs-java-app
     restart: on-failure
     ports:

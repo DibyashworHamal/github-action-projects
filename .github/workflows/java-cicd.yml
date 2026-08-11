@@ -11,6 +11,10 @@ on:
     paths:
       - 'java-app/**'
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     name: Continuous Integration (CI)
@@ -39,19 +43,20 @@ jobs:
       - name: Build Package
         run: mvn clean package -DskipTests
 
-      - name: Login to Docker Hub
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Built-in automatic token!
 
-      - name: Build Docker Image
+      - name: Build and Push Docker Image
         run: |
-          docker image build -t ${{ secrets.DOCKERHUB_USERNAME }}/ebs-java-app:1.0.1 .
-
-      - name: Push Docker Image to Docker Hub
-        run: |
-          docker image push ${{ secrets.DOCKERHUB_USERNAME }}/ebs-java-app:1.0.1
+          # Convert username to lowercase to satisfy GHCR naming rules
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository_owner }}/ebs-java-app:1.0.0" | tr '[:upper:]' '[:lower:]')
+          
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
 
   deploy:
     name: Continuous Deployment (CD)
@@ -64,6 +69,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           DOT_ENV_CONTENT: ${{ secrets.JAVA_ENV_FILE }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -87,9 +93,14 @@ jobs:
             # 4. Inject Java application environment variables
             echo "$DOT_ENV_CONTENT" > .env
 
-            # 5. Ensure external shared network exists
+            # 5. Log in to GitHub Container Registry (GHCR) to pull the latest image
+            echo "$GHCR_PAT" | docker login ghcr.io -u dibyashworhamal --password-stdin
+
+            # 6. Ensure external shared network exists
             docker network create devops-shared-network 2>/dev/null || true
 
-            # 6. Pull the latest Docker Hub image and deploy
+            # 7. Pull the latest image and deploy
             docker compose pull
+            docker container stop ebs-java-app || true  # Stops the container if it's running, but doesn't fail if it isn't
+            docker container rm ebs-java-app || true    # Removes the container if it exists, but doesn't fail if it doesn't
             docker compose up -d
