@@ -20,6 +20,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Create .env File for Validation
+        env:
+          DOT_ENV_CONTENT: ${{ secrets.WORDPRESS_ENV_FILE }}
+        run: echo "$DOT_ENV_CONTENT" > .env
+
       - name: Validate Docker Compose Configuration
         run: docker compose config
 
