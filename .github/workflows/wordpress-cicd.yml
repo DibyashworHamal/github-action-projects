@@ -46,18 +46,19 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DOT_ENV_CONTENT
           script: |
-            # 1. Navigate to home directory
-            cd /home/ubuntu/
+            # 1. Ensure project root directory exists and navigate inside it
+            mkdir -p /home/ubuntu/github-action-projects
+            cd /home/ubuntu/github-action-projects
 
             # 2. Pull latest code from GitHub
-            if [ ! -d "github-action-projects" ]; then
+            if [ ! -d ".git" ]; then
               git clone https://github.com/DibyashworHamal/github-action-projects.git
             else
               git pull origin main
             fi
 
             # 3. Go to wordpress directory
-            cd github-action-projects/wordpress
+            cd wordpress
 
             # 4. Inject WordPress environment variables
             echo "$DOT_ENV_CONTENT" > .env
