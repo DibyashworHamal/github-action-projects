@@ -58,11 +58,36 @@ jobs:
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
+      - name: Send Email on CI Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Build #${{ github.run_number }} Failed - Event Booking System (CI)"
+          to: hamaldivyashwor2057@gmail.com
+          from: DevOps Team <${{ secrets.MAIL_USERNAME }}>
+          body: |
+            Hello Team,
+
+            BUILD #${{ github.run_number }} of Event Booking System (CI) HAS FAILED.
+            Please check the build details at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Regards,
+            DevOps Team  
+
   deploy:
     name: Continuous Deployment (CD)
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+
+    # manual approval step for production deployment
+    environment:
+      name: production
+
 
     steps:
       - name: Deploy Application via SSH
@@ -104,3 +129,47 @@ jobs:
             docker container stop ebs-java-app || true  # Stops the container if it's running, but doesn't fail if it isn't
             docker container rm ebs-java-app || true    # Removes the container if it exists, but doesn't fail if it doesn't
             docker compose up -d
+
+      # --- EMAIL NOTIFICATION ON CD SUCCESS ---
+      - name: Send Email on Production Deployment Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Build #${{ github.run_number }} Successful - Event Booking System (Production)"
+          to: hamaldivyashwor2057@gmail.com
+          from: DevOps Team <${{ secrets.MAIL_USERNAME }}>
+          body: |
+            Hello Team,
+
+            BUILD #${{ github.run_number }} of Event Booking System WAS SUCCESSFUL in Production!
+            Build details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Application URL: https://ebs.dibyashworhamal.com.np
+
+            Regards,
+            DevOps Team
+
+      # --- EMAIL NOTIFICATION ON CD FAILURE ---
+      - name: Send Email on Production Deployment Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Build #${{ github.run_number }} Failed - Event Booking System (Production)"
+          to: hamaldivyashwor2057@gmail.com
+          from: DevOps Team <${{ secrets.MAIL_USERNAME }}>
+          body: |
+            Hello Team,
+
+            BUILD #${{ github.run_number }} of Event Booking System (Production Deployment) HAS FAILED.
+            Please check the build details at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Regards,
+            DevOps Team
