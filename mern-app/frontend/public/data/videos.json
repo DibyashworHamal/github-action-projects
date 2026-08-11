@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "1",
+    "title": "Relaxing Music 1",
+    "description": "Chill music for work and study",
+    "url": "https://www.w3schools.com/html/mov_bbb.mp4",
+    "thumbnailUrl": "https://placehold.co/640x360?text=Relaxing+1",
+    "channelName": "Chill Beats",
+    "views": 12345,
+    "likes": 100,
+    "uploadDate": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "_id": "2",
+    "title": "Relaxing Music 2",
+    "description": "Ambient sounds",
+    "url": "https://www.w3schools.com/html/movie.mp4",
+    "thumbnailUrl": "https://placehold.co/640x360?text=Relaxing+2",
+    "channelName": "Ambient World",
+    "views": 9876,
+    "likes": 42,
+    "uploadDate": "2023-02-01T00:00:00.000Z"
+  }
+]

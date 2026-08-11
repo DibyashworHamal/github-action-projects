@@ -1,0 +1,27 @@
+services:
+  backend:
+    image: ${DOCKERHUB_USERNAME}/mern-backend:1.0.0
+    container_name: backend
+    ports:
+      - "${BACKEND_HOST_PORT}:${BACKEND_CONTAINER_PORT}"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - mern-network
+
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/mern-frontend:1.0.0
+    container_name: frontend
+    ports:
+      - "${FRONTEND_HOST_PORT}:${FRONTEND_CONTAINER_PORT}"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - mern-network
+
+networks:
+  mern-network:
+    name: devops-shared-network
+    external: true
