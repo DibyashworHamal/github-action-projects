@@ -13,6 +13,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Deployment Directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/database
+            echo "Deployment directory ready."
+
+      - name: Copy Docker Compose File
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          source: "database/docker-compose.yml"
+
+          target: "/home/ubuntu/database/docker-compose.yml"
+
+          strip_components: 1
+
       - name: Deploy Database via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -23,25 +49,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DOT_ENV_CONTENT
           script: |
-            # 1. go to home directory
-            cd /home/ubuntu/
+            # 1. Navigate to the deployment directory
+            cd /home/ubuntu/database
 
-            # 2. Clone repo if missing, otherwise pull latest code
-            if [ ! -d "github-action-projects" ]; then
-              git clone https://github.com/DibyashworHamal/github-action-projects.git
-            else
-              git pull origin main
-            fi
-
-            # 3. Navigate into database directory
-            cd github-action-projects/database
-
-            # 4. Inject database environment variables
+            # 2. Inject database environment variables
             echo "$DOT_ENV_CONTENT" > .env
 
-            # 5. Ensure external shared network exists
+            # 3. Ensure external shared network exists
             docker network create devops-shared-network 2>/dev/null || true
 
-            # 6. Pull images and launch containers
+            # 4. Pull images and launch containers
             docker compose pull
             docker compose up -d
