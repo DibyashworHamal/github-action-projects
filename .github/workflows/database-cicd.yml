@@ -35,7 +35,7 @@ jobs:
 
           source: "database/docker-compose.yml"
 
-          target: "/home/ubuntu/database/docker-compose.yml"
+          target: "/home/ubuntu/database/"
 
           strip_components: 1
 
