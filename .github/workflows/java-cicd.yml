@@ -53,7 +53,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           # Convert username to lowercase to satisfy GHCR naming rules
-          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository_owner }}/ebs-java-app:1.0.0" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository_owner }}/ebs-java-app:${{ github.sha }}" | tr '[:upper:]' '[:lower:]')
           
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
@@ -82,7 +82,9 @@ jobs:
     name: Continuous Deployment (CD)
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' 
+    # it says that this job will only run if the workflow is triggered by a push to the main branch. 
+    #This is a common practice in CI/CD pipelines to ensure that deployment only occurs from the main branch, which is typically considered the stable version of the code.
 
     # manual approval step for production deployment
     environment:
@@ -90,45 +92,76 @@ jobs:
 
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Deployment Directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/ebs
+            echo "Deployment directory ready."
+
+      - name: Copy Docker Compose File
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          source: "java-app/docker-compose.yml"
+
+          target: "/home/ubuntu/ebs"
+
+          strip_components: 1
+
       - name: Deploy Application via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
           DOT_ENV_CONTENT: ${{ secrets.JAVA_ENV_FILE }}
           GHCR_PAT: ${{ secrets.GHCR_PAT_SECRET }}
+          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/ebs-java-app:${{ github.sha }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DOT_ENV_CONTENT
+          envs: DOT_ENV_CONTENT,IMAGE_NAME
           script: |
-            # 1. Ensure project root directory exists and navigate inside it
-            mkdir -p /home/ubuntu/github-action-projects
-            cd /home/ubuntu/github-action-projects
+            # 1. Navigate to the deployment directory
+            cd /home/ubuntu/ebs
 
-            # 2. Clone repo if missing, otherwise pull latest code
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/DibyashworHamal/github-action-projects.git .
-            else
-              git pull origin main
-            fi
-
-            # 3. Navigate into java-app directory
-            cd java-app
-
-            # 4. Inject Java application environment variables
+            # 2. Inject Java application environment variable and image name into .env file
             echo "$DOT_ENV_CONTENT" > .env
+            echo "IMAGE=$IMAGE_NAME" >> .env
 
-            # 5. Log in to GitHub Container Registry (GHCR) to pull the latest image
+            # 3. Log in to GitHub Container Registry (GHCR) to pull the latest image
             echo "$GHCR_PAT" | docker login ghcr.io -u dibyashworhamal --password-stdin
 
-            # 6. Ensure external shared network exists
+            # 4. Ensure external shared network exists
             docker network create devops-shared-network 2>/dev/null || true
 
-            # 7. Pull the latest image and deploy
+            # 5. Show Deployment Image
+            echo "Deploying image:"
+            grep "^IMAGE=" .env
+
+            # 6. Pull the exact sha-tagged image from GHCR
             docker compose pull
+
+            # 7. Stop and remove the existing container if it exists
             docker container stop ebs-java-app || true  # Stops the container if it's running, but doesn't fail if it isn't
             docker container rm ebs-java-app || true    # Removes the container if it exists, but doesn't fail if it doesn't
+
+            # 8. Start the new container in detached mode
             docker compose up -d
+
+            # 9. Show the running container
+            docker ps --filter "name=ebs-java-app"
+
+            # 10. Show the deployed image for verification
+            docker inspect ebs-java-app --format='{{.Config.Image}}'
 
       # --- EMAIL NOTIFICATION ON CD SUCCESS ---
       - name: Send Email on Production Deployment Success
