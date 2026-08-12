@@ -123,18 +123,19 @@ jobs:
         env:
           DOT_ENV_CONTENT: ${{ secrets.JAVA_ENV_FILE }}
           GHCR_PAT: ${{ secrets.GHCR_PAT_SECRET }}
-          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository_owner }}/ebs-java-app:${{ github.sha }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/ebs-java-app:${{ github.sha }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DOT_ENV_CONTENT,IMAGE_NAME
+          envs: DOT_ENV_CONTENT,GHCR_PAT,IMAGE_NAME
           script: |
             # 1. Navigate to the deployment directory
             cd /home/ubuntu/ebs
 
             # 2. Inject Java application environment variable and image name into .env file
             echo "$DOT_ENV_CONTENT" > .env
+            IMAGE_NAME=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]') # Convert to lowercase for GHCR naming rules
             echo "IMAGE=$IMAGE_NAME" >> .env
 
             # 3. Log in to GitHub Container Registry (GHCR) to pull the latest image
