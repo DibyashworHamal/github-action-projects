@@ -65,6 +65,32 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Deployment Directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/mern-app
+            echo "Deployment directory ready."
+
+      - name: Copy Docker Compose File
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          source: "mern-app/docker-compose.yml"
+
+          target: "/home/ubuntu/mern-app"
+
+          strip_components: 1
+
       - name: Deploy MERN Stack via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
@@ -75,26 +101,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DOT_ENV_CONTENT
           script: |
-            # 1. Navigate to project root on EC2
-            mkdir -p /home/ubuntu/github-action-projects
-            cd /home/ubuntu/github-action-projects
+            # 1. Navigate to the deployment directory
+            cd /home/ubuntu/mern-app
 
-            # 2. Pull latest code from GitHub
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/DibyashworHamal/github-action-projects.git .
-            else
-              git pull origin main
-            fi
-
-            # 3. Go to mern-app directory
-            cd mern-app
-
-            # 4. Inject MERN environment variables
+            # 2. Inject MERN environment variables
             echo "$DOT_ENV_CONTENT" > .env
 
-            # 5. Ensure external shared network exists
+            # 3. Ensure external shared network exists
             docker network create devops-shared-network 2>/dev/null || true
 
-            # 6. Pull images from Docker Hub and launch containers
+            # 4. Pull images from Docker Hub and launch containers
             docker compose pull
             docker compose up -d
