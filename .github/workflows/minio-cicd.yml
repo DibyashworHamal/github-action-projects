@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
       - name: Create Deployment Directory
         uses: appleboy/ssh-action@v1.0.3
         with:
