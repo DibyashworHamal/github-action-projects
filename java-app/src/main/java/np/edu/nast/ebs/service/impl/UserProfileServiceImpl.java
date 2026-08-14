@@ -82,71 +82,71 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .map(mapper::toDto);
     }
 
-	public FileStorageService getFileStorageService() {
-		return fileStorageService;
-	}
-	
-	@Override
-	@Transactional
-	public UserProfileResponseDTO updateSettings(Integer userId, UserProfileRequestDTO dto) {
-	    UserProfile profile = profileRepository.findByUser_UserId(userId)
-	        .orElseGet(() -> {
-	            User user = userRepository.findById(userId).orElseThrow();
-	            UserProfile newProfile = new UserProfile();
-	            newProfile.setUser(user);
-	            return newProfile;
-	        });
+    public FileStorageService getFileStorageService() {
+        return fileStorageService;
+    }
+    
+    @Override
+    @Transactional
+    public UserProfileResponseDTO updateSettings(Integer userId, UserProfileRequestDTO dto) {
+        UserProfile profile = profileRepository.findByUser_UserId(userId)
+            .orElseGet(() -> {
+                User user = userRepository.findById(userId).orElseThrow();
+                UserProfile newProfile = new UserProfile();
+                newProfile.setUser(user);
+                return newProfile;
+            });
 
-	    profile.setBio(dto.getBio());
-	    profile.setTheme(dto.getTheme() != null ? Theme.valueOf(dto.getTheme().toUpperCase()) : Theme.LIGHT);
-	    profile.setNotificationEmail(dto.getNotificationEmail() != null && dto.getNotificationEmail());
-	    profile.setUpdatedAt(LocalDateTime.now());
-	    
-	    return mapper.toDto(profileRepository.save(profile));
-	}
+        profile.setBio(dto.getBio());
+        profile.setTheme(dto.getTheme() != null ? Theme.valueOf(dto.getTheme().toUpperCase()) : Theme.LIGHT);
+        profile.setNotificationEmail(dto.getNotificationEmail() != null && dto.getNotificationEmail());
+        profile.setUpdatedAt(LocalDateTime.now());
+        
+        return mapper.toDto(profileRepository.save(profile));
+    }
 
-	@Override
-	@Transactional
-	public void updateProfilePicture(Integer userId, MultipartFile photo) {
-	    if (photo.isEmpty()) {
-	        throw new IllegalArgumentException("Cannot update profile with an empty photo.");
-	    }
-	    
-	    String fileName = fileStorageService.store(photo);
-	    String photoUrl = "/files/organizer_docs/" + fileName;
+    @Override
+    @Transactional
+    public void updateProfilePicture(Integer userId, MultipartFile photo) {
+        if (photo == null || photo.isEmpty()) {
+            throw new IllegalArgumentException("Cannot update profile with an empty photo.");
+        }
+        
+        // Upload photo to MinIO S3 and get the full HTTPS URL
+        String photoUrl = fileStorageService.store(photo);
 
-	    UserProfile profile = profileRepository.findByUser_UserId(userId)
-	        .orElseGet(() -> {
-	            User user = userRepository.findById(userId).orElseThrow();
-	            UserProfile newProfile = new UserProfile();
-	            newProfile.setUser(user);
-	            return newProfile;
-	        });
-	    
-	    profile.setProfilePicture(photoUrl);
-	    profile.setUpdatedAt(LocalDateTime.now());
-	    profileRepository.save(profile);
-	}
-	
-	 @Override
-	    @Transactional
-	    public void changePassword(Integer userId, ChangePasswordRequest request) {
-	        // 1. Find the user
-	        User user = userRepository.findById(userId)
-	                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        UserProfile profile = profileRepository.findByUser_UserId(userId)
+            .orElseGet(() -> {
+                User user = userRepository.findById(userId).orElseThrow();
+                UserProfile newProfile = new UserProfile();
+                newProfile.setUser(user);
+                return newProfile;
+            });
+        
+        profile.setProfilePicture(photoUrl);
+        profile.setUpdatedAt(LocalDateTime.now());
+        profileRepository.save(profile);
+    }
+    
+    @Override
+    @Transactional
+    public void changePassword(Integer userId, ChangePasswordRequest request) {
+        // 1. Find the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-	        // 2. Check if the old password matches
-	        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-	            throw new IllegalArgumentException("Incorrect old password.");
-	        }
+        // 2. Check if the old password matches
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect old password.");
+        }
 
-	        // 3. Check if the new password and confirm password match
-	        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-	            throw new IllegalArgumentException("New password and confirmation do not match.");
-	        }
+        // 3. Check if the new password and confirm password match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("New password and confirmation do not match.");
+        }
 
-	        // 4. Encode and save the new password
-	        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-	        userRepository.save(user);
-	    }
+        // 4. Encode and save the new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 }

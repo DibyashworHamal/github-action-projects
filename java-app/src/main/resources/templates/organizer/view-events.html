@@ -81,8 +81,8 @@
                 <!-- Use th:classappend to add 'featured' class conditionally -->
                 <div class="event-card" th:each="event : ${events}" th:classappend="${event.isFeatured} ? 'featured'">
                     <div class="event-card-img-container">
-                        <img th:src="${event.coverImagePath != null ? event.coverImagePath : '/images/default-event.png'}" 
-                             class="event-card-img-top" alt="Event Image">
+                        <img th:src="${event.coverImagePath != null and !#strings.isEmpty(event.coverImagePath)} ? (${#strings.startsWith(event.coverImagePath, 'http')} ? ${event.coverImagePath} : @{'https://s3.dibyashworhamal.com.np/dip-uploads/' + ${event.coverImagePath}}) : @{/images/default-event.png}" 
+                            class="event-card-img-top" alt="Event Image">
                         <div th:if="${event.isFeatured}" class="featured-badge">FEATURED</div>
                     </div>
                     

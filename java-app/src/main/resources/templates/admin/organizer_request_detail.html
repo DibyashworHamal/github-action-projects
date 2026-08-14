@@ -50,9 +50,9 @@
                     <span th:text="${request.paymentStatus}"></span>
                 </div>
 
-               <div class="document-viewer">
-                    <h4>Submitted Document</h4>
-                    <iframe th:src="@{/files/organizer_docs/{filename}(filename=${request.documentPath})}"></iframe>
+                <div class="document-viewer">
+                  <h4>Submitted Document</h4>
+                  <iframe th:src="${#strings.startsWith(request.documentPath, 'http')} ? ${request.documentPath} : @{'https://s3.dibyashworhamal.com.np/dip-uploads/' + ${request.documentPath}}"></iframe>
                 </div>
                 
                 <div class="action-buttons">

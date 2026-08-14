@@ -21,7 +21,9 @@
                 <div class="profile-picture-card">
                     <label for="profilePictureInput" style="cursor: pointer;" title="Click to upload a new photo">
                         <div class="profile-picture-circle">
-                            <img id="imagePreview" th:src="${profile?.profilePicture} ?: 'https://i.ibb.co/61D6tDB/user-profile-icon-free-vector.jpg'" alt="Profile Picture">
+                            <img id="imagePreview" 
+                                th:src="${profile?.profilePicture != null} ? (${#strings.startsWith(profile.profilePicture, 'http')} ? ${profile.profilePicture} : @{'https://s3.dibyashworhamal.com.np/dip-uploads/' + ${profile.profilePicture}}) : 'https://i.ibb.co/61D6tDB/user-profile-icon-free-vector.jpg'" 
+                                alt="Profile Picture">
                         </div>
                     </label>
                     <input type="file" id="profilePictureInput" style="display: none;" accept="image/*"/>
