@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class S3Config {
 
-    @Value("${AWS_S3_ENDPOINT:http://minio_server:9000}")
+    @Value("${AWS_S3_ENDPOINT:http://minio-server:9000}")
     private String endpoint;
 
     @Value("${AWS_S3_ACCESS_KEY}")
